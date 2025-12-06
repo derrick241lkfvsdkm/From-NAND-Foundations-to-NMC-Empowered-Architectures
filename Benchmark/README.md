@@ -20,31 +20,7 @@ This directory contains a complete Python-based implementation of the Hack CPU s
 ### Utilities
 - **init_matmul.py** - Generates MatMul_Full.asm with matrix initialization
 
-## Key Fixes Applied
 
-### 1. Assembler Improvements
-- Added proper error handling for unknown mnemonics
-- Fixed comment parsing
-- Improved symbol table management
-
-### 2. CPU Simulator Fixes
-- **Signed arithmetic**: Properly handles 16-bit two's complement arithmetic
-- **Halt detection**: Detects infinite loops (e.g., `@HALT; 0;JMP`)
-- **Indirect addressing**: Fixed bug where A register was overwritten during indirect writes
-
-### 3. Matrix Multiplication Bug Fixes
-- **Address calculation**: Fixed i*4 and k*4 calculations
-  - Original code: `temp=i; D=temp+temp; D=D+temp` → 3*i (WRONG)
-  - Fixed code: `temp=i; D=i+i; temp=2*i; D=2*i+2*i` → 4*i (CORRECT)
-- **Indirect write**: Fixed sequence to load D before overwriting A
-  - Original: `A=RAM[addr]; A=33; D=RAM[33]; M=D` (writes to RAM[33])
-  - Fixed: `D=RAM[33]; A=RAM[addr]; M=D` (writes to RAM[addr])
-
-### 4. NMC Acceleration Model
-The NMC simulator models near-memory computing by reducing cycle costs for memory-intensive operations:
-- Operations like `D+M` with M destination: 0.3 cycles (vs 1.0)
-- Other M-based operations: 0.5 cycles
-- Demonstrates ~1-2% speedup on matrix multiplication workloads
 
 ## Usage
 
