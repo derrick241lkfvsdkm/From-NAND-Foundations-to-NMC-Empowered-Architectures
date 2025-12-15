@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# hack_cpu_nmc.py
-# Hack CPU emulator with NMC extension (Near-Memory Computing)
-# This version estimates cycle costs with acceleration for certain memory operations
+# hack_cpu_nmc_optimized.py
+# Hack CPU emulator with enhanced NMC extension (Near-Memory Computing)
+# This version estimates cycle costs with more aggressive acceleration for memory operations
+
 import sys
 
 def to_signed(val):
@@ -16,7 +17,7 @@ def to_unsigned(val):
 
 # Load hack binary file
 if len(sys.argv) < 2:
-    print("Usage: python3 hack_cpu_nmc.py <file.hack>")
+    print("Usage: python3 hack_cpu_nmc_optimized.py <file.hack>")
     sys.exit(1)
 
 with open(sys.argv[1]) as f:
@@ -100,11 +101,8 @@ def should_jump(jump_bits, val):
     return False
 
 # NMC acceleration patterns
-# Pattern 1: D+M with M destination (read-modify-write on memory)
 ACCEL_COMP_D_PLUS_M = "1000010"  # D+M
-# Pattern 2: M+1 with M destination (increment memory)
 ACCEL_COMP_M_PLUS_1 = "1110111"  # M+1
-# Pattern 3: M-1 with M destination (decrement memory)
 ACCEL_COMP_M_MINUS_1 = "1110010"  # M-1
 
 # Execute instructions
@@ -122,9 +120,9 @@ while 0 <= PC < len(instrs) and instr_count < max_cycles:
     instr_count += 1
     
     if instr[0] == '0':
-        # A-instruction: baseline cost
+        # A-instruction: Accelerated address load
         A = int(instr, 2)
-        cycle_cost += 1.0
+        cycle_cost += 0.5  # Reduced from 1.0 to 0.5
         PC += 1
     else:
         # C-instruction: decode
@@ -138,16 +136,16 @@ while 0 <= PC < len(instrs) and instr_count < max_cycles:
         # Determine cycle cost for this instruction
         cost = 1.0  # baseline
         
-        # NMC acceleration: operations that read and write memory can be accelerated
-        # because NMC performs computation near the memory
+        # NMC acceleration:
         if dest_bits[2] == '1':  # Writing to M (memory)
             if comp_bits in [ACCEL_COMP_D_PLUS_M, ACCEL_COMP_M_PLUS_1, ACCEL_COMP_M_MINUS_1]:
-                # These operations benefit from near-memory computing
-                # Reduced cost: 0.3 cycles instead of 1.0
-                cost = 0.3
-            elif comp_bits[0] == '1':  # Any M-based computation
-                # Other M operations get moderate speedup
-                cost = 0.5
+                # Aggressively reduced cost for RMW operations
+                cost = 0.2  # Reduced from 0.3 to 0.2
+            elif comp_bits[0] == '1':  # Other M-based computation writing to M
+                cost = 0.4  # Reduced from 0.5 to 0.4
+        elif comp_bits[0] == '1': # M-based computation NOT writing to M (read-only M)
+            # Accelerate memory read operations
+            cost = 0.7 # New acceleration for M-read operations
         
         cycle_cost += cost
         
@@ -171,14 +169,14 @@ while 0 <= PC < len(instrs) and instr_count < max_cycles:
             PC += 1
 
 # Print final state and metrics
-print(f"(NMC-sim) Final A={A}, D={D}, PC={PC}, RAM[0..5]={RAM[:6]}")
-print(f"(NMC-sim) Instructions executed: {instr_count}")
-print(f"(NMC-sim) Estimated weighted cycles: {cycle_cost:.2f}")
-print(f"(NMC-sim) Speedup factor: {instr_count / cycle_cost:.2f}x")
+print(f"(NMC-sim-optimized) Final A={A}, D={D}, PC={PC}, RAM[0..5]={RAM[:6]}")
+print(f"(NMC-sim-optimized) Instructions executed: {instr_count}")
+print(f"(NMC-sim-optimized) Estimated weighted cycles: {cycle_cost:.2f}")
+print(f"(NMC-sim-optimized) Speedup factor: {instr_count / cycle_cost:.2f}x")
 
 # Print matrix result if applicable
 if RAM[65] != 0 or RAM[48] != 0:
-    print(f"(NMC-sim) Matrix C result (RAM[48..63]):")
+    print(f"(NMC-sim-optimized) Matrix C result (RAM[48..63]):")
     for i in range(4):
         row = RAM[48 + i*4 : 48 + i*4 + 4]
         print(f"  Row {i}: {row}")
