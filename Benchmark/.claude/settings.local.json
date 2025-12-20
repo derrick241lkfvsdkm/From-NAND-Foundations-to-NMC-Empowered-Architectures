@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(cd /Users/mima0000/Desktop/Computer\\\\ Architecture/Project/Codes/Benchmark && python3 benchmark.py MatMul_Full.hack 2>&1:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}
